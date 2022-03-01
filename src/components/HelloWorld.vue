@@ -26,10 +26,11 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class HelloWorld extends Vue {
  @Prop() private msg!: string;
-   private coordinates = {
+  private coordinates = {
     latitude: '',
     longitude: ''
   };
+  private locationWatchId: number = 0;
 
   mounted() {
     console.log('VUE MOUNTED : ');
@@ -38,7 +39,7 @@ export default class HelloWorld extends Vue {
 
   getLocation() {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(this.showPosition);
+      this.locationWatchId = navigator.geolocation.watchPosition(this.showPosition);
     } else {
       console.log("Geolocation is not supported by this browser.");
     }
@@ -47,6 +48,10 @@ export default class HelloWorld extends Vue {
     this.coordinates.latitude = position.coords.latitude;
     this.coordinates.longitude = position.coords.longitude;
     console.log('COORDINATES : ', this.coordinates);
+  }
+
+  destroyed() {
+    navigator.geolocation.clearWatch(this.locationWatchId);
   }
 }
 </script>
