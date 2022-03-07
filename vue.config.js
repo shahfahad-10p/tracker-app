@@ -29,4 +29,5 @@ module.exports = {
     );
     htmlWebpackPlugin.options.title = appConfig[app].title;
   },
+  "outputDir": appConfig[app].outputDir
 };
