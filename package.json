@@ -5,6 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service serve --port 3001",
     "build": "vue-cli-service build",
+    "serve:portal": "vue-cli-service serve --app=portal --port 3002",
+    "build:portal": "vue-cli-service build --app=portal",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "postinstall": "npm run build",
