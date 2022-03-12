@@ -10,7 +10,7 @@
         />
       </v-col>
 
-      <v-col class="mb-4" cols="6">
+      <v-col class="mb-4" lg="6" >
         <h1>TRACKER COMPONENT</h1>
         <v-card class="form-card" elevation="2">
           <v-form ref="form" v-model="valid" lazy-validation>
@@ -41,6 +41,8 @@
             </v-btn>
 
             <pre>{{ coordinates }}</pre>
+            <label>Tracking Status : </label>
+            <label>{{ isUpdating ? 'Updating' : 'Not Updating' }}</label>
           </v-form>
         </v-card>
       </v-col>
@@ -60,7 +62,7 @@ export default class Tracker extends Vue {
     longitude: '',
   };
   private locationWatchId: number = 0;
-  private intervalEvent:number = 0;
+  private intervalEvent: number = 0;
   private isTracking = false;
   valid = false;
   name = '';
@@ -69,10 +71,11 @@ export default class Tracker extends Vue {
     (v: string) =>
       (v && v.length <= 30) || 'Name must be less than 10 characters',
   ];
+  isUpdating = false;
 
   onTracking() {
     if (!this.name.trim()) {
-      (this.$refs.form as Vue & { validate: () => boolean }).validate()
+      (this.$refs.form as Vue & { validate: () => boolean }).validate();
       return;
     }
     this.isTracking = true;
@@ -104,26 +107,33 @@ export default class Tracker extends Vue {
   }
 
   startLocationTimer() {
-    this.intervalEvent = setInterval(this.postTrackerLocation, 5 * 1000);
+    const timer = 5 * 1000; //5 seconds
+    // const timer = 1 * 60 * 1000; //1 minute
+    this.intervalEvent = setInterval(this.postTrackerLocation, timer);
   }
 
   async postTrackerLocation() {
+    const dateTime = (new Date()).toISOString();
     console.log(
       'UPDATING TRACKER LOCATION : ',
       this.name,
       this.coordinates.latitude,
-      this.coordinates.longitude
+      this.coordinates.longitude,
+      dateTime
     );
+    this.isUpdating = true;
     if (this.name && this.coordinates.latitude) {
       const payload = {
         name: this.name,
         latitude: this.coordinates.latitude,
         longitude: this.coordinates.longitude,
+        dateTime
       };
       const result = await axios.put(
         'https://tracker-api-m11.herokuapp.com/tracker',
         payload
       );
+      this.isUpdating = false;
     }
   }
 }

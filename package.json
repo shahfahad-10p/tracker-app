@@ -13,9 +13,11 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@types/mapbox-gl": "^2.6.3",
     "axios": "^0.26.0",
     "core-js": "^3.6.5",
     "express": "^4.17.3",
+    "mapbox-gl": "^2.7.0",
     "register-service-worker": "^1.7.1",
     "serve-static": "^1.14.2",
     "vue": "^2.6.11",
