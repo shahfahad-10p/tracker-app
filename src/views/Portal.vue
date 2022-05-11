@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1>PORTAL</h1>
     <TrackerList/>
   </div>
 </template>

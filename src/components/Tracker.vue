@@ -11,7 +11,6 @@
       </v-col>
 
       <v-col class="mb-4" lg="6" >
-        <h1>TRACKER COMPONENT</h1>
         <v-card class="form-card" elevation="2">
           <v-form ref="form" v-model="valid" lazy-validation>
             <v-text-field

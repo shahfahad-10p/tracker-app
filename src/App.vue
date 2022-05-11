@@ -1,13 +1,9 @@
 <template>
   <v-app>
-    <v-app-bar app color="secondary" dark> </v-app-bar>
+    <v-app-bar app color="secondary" dark>
+      <v-toolbar-title>{{$route.meta.title}}</v-toolbar-title></v-app-bar
+    >
     <v-main>
-      <v-row class="text-center">
-        <v-col cols="12">
-          <router-link to="/">Home</router-link> |
-          <router-link to="/about">About</router-link>
-        </v-col>
-      </v-row>
       <router-view />
     </v-main>
   </v-app>

@@ -22,7 +22,7 @@
                 <div class="map-gl w-100 h-100" ref="mapgl"></div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn text @click="openDialog = false">Close</v-btn>
+                <v-btn text @click="closeMapModal">Close</v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -42,6 +42,7 @@ interface Tracker {
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import mapboxgl from 'mapbox-gl';
 import axios from 'axios';
+import bbox from '@turf/bbox';
 
 @Component
 export default class TrackerList extends Vue {
@@ -58,6 +59,7 @@ export default class TrackerList extends Vue {
 
   trackers = [];
   openDialog = false;
+  mapgl: any;
 
   mounted() {
     this.getTrackers();
@@ -65,7 +67,9 @@ export default class TrackerList extends Vue {
 
   async getTrackers() {
     console.log('FETCHING TRACKERS');
-    const response = await axios.get(`https://tracker-api-m11.herokuapp.com/trackers`);
+    const response = await axios.get(
+      `https://tracker-api-m11.herokuapp.com/trackers`
+    );
     this.trackers = response.data.trackers;
     console.log('TRACKERS: ', response.data.trackers);
   }
@@ -73,29 +77,29 @@ export default class TrackerList extends Vue {
   async handleClick(row: Tracker) {
     this.openDialog = true;
     console.log('FETCHING ARCHIVE EVENTS', row.name);
-    const response = await axios.get(
+    const response: any = await axios.get(
       `https://tracker-api-m11.herokuapp.com/tracker/${row.name}/geojson`
     );
-    console.log('MAP CONTAINER REFERENCE ', this.$refs.mapgl);
+    console.log('GEOJSON ', response);
 
     mapboxgl.accessToken =
       'pk.eyJ1IjoiZmFoYWRtMTEiLCJhIjoiY2tmNWE0bXluMDZmNzJxcTdsanRyZTMzZSJ9.Q6Mwf640Zh4VG2zThjrFKg';
-    const mapas = new mapboxgl.Map({
-      container: this.$refs.mapgl, // container ID
+    this.mapgl = new mapboxgl.Map({
+      container: this.$refs.mapgl as HTMLElement, // container ID
       style: 'mapbox://styles/mapbox/streets-v11', // style URL
       center: [-74.5, 40], // starting position [lng, lat]
       zoom: 9, // starting zoom
     });
 
-    mapas.on('load', () => {
+    this.mapgl.on('load', () => {
       console.log('MAP LOADED : ');
 
-      mapas.addSource('earthquakes', {
+      this.mapgl.addSource('earthquakes', {
         type: 'geojson',
         data: `https://tracker-api-m11.herokuapp.com/tracker/${row.name}/geojson`,
       });
 
-      mapas.addLayer({
+      this.mapgl.addLayer({
         id: 'earthquakes-layer',
         type: 'circle',
         source: 'earthquakes',
@@ -106,7 +110,31 @@ export default class TrackerList extends Vue {
           'circle-stroke-color': 'white',
         },
       });
+      const coordinates = response.data.features.map((tracker: any) => {
+        return tracker.geometry.coordinates;
+      });
+
+      console.log('BBOX COORDINATES : ', coordinates);
+
+      coordinates.length && this.fitPolygon(this.mapgl, coordinates);
     });
+  }
+
+  closeMapModal() {
+    this.openDialog = false;
+    this.mapgl.remove();
+  }
+  fitPolygon(map: any, polygon: any) {
+    map.fitBounds(
+      bbox({
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [polygon],
+        },
+      }),
+      { linear: true, padding: { top: 25, bottom: 25, right: 25, left: 25 } }
+    );
   }
 }
 </script>

@@ -9,6 +9,9 @@ const routes: Array<RouteConfig> = [
     path: "/",
     name: "Portal",
     component: Portal,
+    meta: {
+      title: 'Portal'
+    }
   },
 //   {
 //     path: "/about",
