@@ -13,8 +13,10 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@mapbox/mapbox-gl-draw": "^1.2.2",
     "@turf/bbox": "^6.5.0",
     "@types/mapbox-gl": "^2.6.3",
+    "@types/mapbox__mapbox-gl-draw": "^1.2.3",
     "axios": "^0.26.0",
     "core-js": "^3.6.5",
     "express": "^4.17.3",

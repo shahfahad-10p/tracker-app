@@ -1,31 +1,34 @@
-import Vue from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
-import Portal from "../views/Portal.vue";
+import Vue from 'vue';
+import VueRouter, { RouteConfig } from 'vue-router';
+import Portal from '../views/Portal.vue';
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
   {
-    path: "/",
-    name: "Portal",
+    path: '/',
+    name: 'Portal',
     component: Portal,
     meta: {
-      title: 'Portal'
-    }
+      title: 'Trackers',
+    },
   },
-//   {
-//     path: "/about",
-//     name: "About",
-//     // route level code-splitting
-//     // this generates a separate chunk (about.[hash].js) for this route
-//     // which is lazy-loaded when the route is visited.
-//     component: () =>
-//       import(/* webpackChunkName: "about" */ "../views/About.vue"),
-//   },
+  {
+    path: '/regions',
+    name: 'Regions',
+    // route level code-splittingF
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () =>
+      import(/* webpackChunkName: "about" */ '../views/Regions.vue'),
+    meta: {
+      title: 'Regions',
+    },
+  },
 ];
 
 const router = new VueRouter({
-  mode: "history",
+  mode: 'history',
   base: process.env.BASE_URL,
   routes,
 });

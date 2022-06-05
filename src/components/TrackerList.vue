@@ -1,35 +1,54 @@
 <template>
-  <v-container>
-    <v-row class="text-center">
-      <v-col cols="12">
-        <v-data-table
-          :headers="headers"
-          :items="trackers"
-          :items-per-page="10"
-          class="elevation-1"
-          @click:row="handleClick"
-        ></v-data-table>
-      </v-col>
-      <v-col>
-        <v-dialog
-          transition="dialog-bottom-transition"
-          max-width="1200"
-          v-model="openDialog"
-        >
-          <template>
-            <v-card>
-              <v-card-text>
-                <div class="map-gl w-100 h-100" ref="mapgl"></div>
-              </v-card-text>
-              <v-card-actions class="justify-end">
-                <v-btn text @click="closeMapModal">Close</v-btn>
-              </v-card-actions>
-            </v-card>
-          </template>
-        </v-dialog></v-col
+  <v-row class="text-center">
+    <v-col cols="12">
+      <v-btn
+        class="primary--text font-weight-bold float-right"
+        @click="handleAddTracker"
+        >Add Tracker</v-btn
       >
-    </v-row>
-  </v-container>
+    </v-col>
+    <v-col cols="12">
+      <v-data-table
+        :headers="headers"
+        :items="trackers"
+        :items-per-page="10"
+        class="elevation-1"
+        @click:row="handleClick"
+      ></v-data-table>
+    </v-col>
+    <v-col>
+      <v-dialog
+        transition="dialog-bottom-transition"
+        max-width="1200"
+        v-model="openDialog"
+      >
+        <template>
+          <v-card>
+            <v-card-text>
+              <div class="map-gl w-100 h-100" ref="mapgl"></div>
+            </v-card-text>
+            <v-card-actions class="justify-end">
+              <v-btn text @click="closeMapModal">Close</v-btn>
+            </v-card-actions>
+          </v-card>
+        </template>
+      </v-dialog></v-col
+    >
+    <v-col>
+      <v-dialog
+        transition="dialog-bottom-transition"
+        max-width="400"
+        persistent
+        v-model="openAddTrackerDialog"
+      >
+        <template>
+          <TrackerAdd
+            v-if="openAddTrackerDialog"
+            @closeAddTrackerModal="onCloseAddTrackerModal"
+          />
+        </template> </v-dialog
+    ></v-col>
+  </v-row>
 </template>
 
 <script lang="ts">
@@ -44,7 +63,14 @@ import mapboxgl from 'mapbox-gl';
 import axios from 'axios';
 import bbox from '@turf/bbox';
 
-@Component
+import TrackerAdd from './TrackeAdd.vue';
+import { API_URL } from '../constants/api';
+
+@Component({
+  components: {
+    TrackerAdd,
+  },
+})
 export default class TrackerList extends Vue {
   headers = [
     {
@@ -53,12 +79,15 @@ export default class TrackerList extends Vue {
       sortable: false,
       value: 'name',
     },
+    { text: 'Email', value: 'email', sortable: false },
+    { text: 'Region', value: 'regionName', sortable: false },
     { text: 'latitude', value: 'latitude', sortable: false },
     { text: 'longitude', value: 'longitude', sortable: false },
   ];
 
   trackers = [];
   openDialog = false;
+  openAddTrackerDialog = false;
   mapgl: any;
 
   mounted() {
@@ -66,19 +95,14 @@ export default class TrackerList extends Vue {
   }
 
   async getTrackers() {
-    console.log('FETCHING TRACKERS');
-    const response = await axios.get(
-      `https://tracker-api-m11.herokuapp.com/trackers`
-    );
+    const response = await axios.get(`${API_URL}trackers`);
     this.trackers = response.data.trackers;
-    console.log('TRACKERS: ', response.data.trackers);
   }
 
   async handleClick(row: Tracker) {
     this.openDialog = true;
-    console.log('FETCHING ARCHIVE EVENTS', row.name);
     const response: any = await axios.get(
-      `https://tracker-api-m11.herokuapp.com/tracker/${row.name}/geojson`
+      `${API_URL}tracker/${row.name}/geojson`
     );
     console.log('GEOJSON ', response);
 
@@ -96,7 +120,7 @@ export default class TrackerList extends Vue {
 
       this.mapgl.addSource('earthquakes', {
         type: 'geojson',
-        data: `https://tracker-api-m11.herokuapp.com/tracker/${row.name}/geojson`,
+        data: `${API_URL}tracker/${row.name}/geojson`,
       });
 
       this.mapgl.addLayer({
@@ -118,6 +142,15 @@ export default class TrackerList extends Vue {
 
       coordinates.length && this.fitPolygon(this.mapgl, coordinates);
     });
+  }
+
+  handleAddTracker() {
+    this.openAddTrackerDialog = true;
+  }
+
+  onCloseAddTrackerModal() {
+    this.openAddTrackerDialog = false;
+    this.getTrackers();
   }
 
   closeMapModal() {
