@@ -7,7 +7,13 @@ export default (() => {
     return response;
   }
 
+  async function remove(trackerId) {
+    const response = await axios.delete(`${API_URL}tracker/${trackerId}`);
+    return response;
+  }
+
   return {
     add,
+    remove,
   };
 })();

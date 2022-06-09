@@ -13,22 +13,58 @@
         :items="trackers"
         :items-per-page="10"
         class="elevation-1"
-        @click:row="handleClick"
-      ></v-data-table>
+      >
+        <template v-slot:top>
+          <v-dialog
+            v-model="openDeleteTrackerDialog"
+            persistent
+            max-width="345px"
+          >
+            <v-card>
+              <v-card-title class="text-h5"
+                >Confirm to delete tracker?</v-card-title
+              >
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn class="primary" @click="cancelDeleteTracker"
+                  >Cancel</v-btn
+                >
+                <v-btn color="secondary" @click="confirmDeleteTracker"
+                  >OK</v-btn
+                >
+                <v-spacer></v-spacer>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <v-icon small class="mr-2" @click="onViewTracker(item)">
+            mdi-eye
+          </v-icon>
+          <v-icon small class="mr-2" @click="onViewArchive(item)">
+            mdi-vector-polyline
+          </v-icon>
+          <v-icon small @click="onDeleteTracker(item)"> mdi-delete </v-icon>
+        </template>
+      </v-data-table>
     </v-col>
     <v-col>
       <v-dialog
         transition="dialog-bottom-transition"
-        max-width="1200"
-        v-model="openDialog"
+        max-width="1400"
+        persistent
+        v-model="openViewTrackerDialog"
       >
         <template>
           <v-card>
-            <v-card-text>
+            <!-- <v-card-text> -->
+            <div class="pa-1">
               <div class="map-gl w-100 h-100" ref="mapgl"></div>
-            </v-card-text>
+            </div>
+            <!-- </v-card-text> -->
             <v-card-actions class="justify-end">
-              <v-btn text @click="closeMapModal">Close</v-btn>
+              <v-btn color="primary" @click="closeMapModal">Close</v-btn>
             </v-card-actions>
           </v-card>
         </template>
@@ -53,9 +89,11 @@
 
 <script lang="ts">
 interface Tracker {
+  id: number;
   name: string;
   latitude: number;
   longitude: number;
+  regionName?: string;
 }
 
 import { Component, Prop, Vue } from 'vue-property-decorator';
@@ -63,6 +101,7 @@ import mapboxgl from 'mapbox-gl';
 import axios from 'axios';
 import bbox from '@turf/bbox';
 
+import TrackerService from '../services/tracker';
 import TrackerAdd from './TrackeAdd.vue';
 import { API_URL } from '../constants/api';
 
@@ -76,18 +115,21 @@ export default class TrackerList extends Vue {
     {
       text: 'Name',
       align: 'start',
-      sortable: false,
+      sortable: true,
       value: 'name',
     },
     { text: 'Email', value: 'email', sortable: false },
-    { text: 'Region', value: 'regionName', sortable: false },
+    { text: 'Region', value: 'regionName', sortable: true },
     { text: 'latitude', value: 'latitude', sortable: false },
     { text: 'longitude', value: 'longitude', sortable: false },
+    { text: 'Actions', value: 'actions', sortable: false },
   ];
 
   trackers = [];
-  openDialog = false;
+  selectedTracker?: Tracker;
+  openViewTrackerDialog = false;
   openAddTrackerDialog = false;
+  openDeleteTrackerDialog = false;
   mapgl: any;
 
   mounted() {
@@ -99,10 +141,20 @@ export default class TrackerList extends Vue {
     this.trackers = response.data.trackers;
   }
 
-  async handleClick(row: Tracker) {
-    this.openDialog = true;
+  handleAddTracker() {
+    this.openAddTrackerDialog = true;
+  }
+
+  onCloseAddTrackerModal() {
+    this.openAddTrackerDialog = false;
+    this.getTrackers();
+  }
+
+  async onViewTracker(tracker: Tracker) {
+    // TODO DRAW REGIONS
+    this.openViewTrackerDialog = true;
     const response: any = await axios.get(
-      `${API_URL}tracker/${row.name}/geojson`
+      `${API_URL}tracker/${tracker.name}/geojson`
     );
     console.log('GEOJSON ', response);
 
@@ -118,15 +170,15 @@ export default class TrackerList extends Vue {
     this.mapgl.on('load', () => {
       console.log('MAP LOADED : ');
 
-      this.mapgl.addSource('earthquakes', {
+      this.mapgl.addSource('tracker', {
         type: 'geojson',
-        data: `${API_URL}tracker/${row.name}/geojson`,
+        data: `${API_URL}tracker/${tracker.name}/geojson`,
       });
 
       this.mapgl.addLayer({
-        id: 'earthquakes-layer',
+        id: 'tracker-layer',
         type: 'circle',
-        source: 'earthquakes',
+        source: 'tracker',
         paint: {
           'circle-radius': 8,
           'circle-stroke-width': 2,
@@ -144,19 +196,34 @@ export default class TrackerList extends Vue {
     });
   }
 
-  handleAddTracker() {
-    this.openAddTrackerDialog = true;
-  }
-
-  onCloseAddTrackerModal() {
-    this.openAddTrackerDialog = false;
-    this.getTrackers();
-  }
-
   closeMapModal() {
-    this.openDialog = false;
+    this.openViewTrackerDialog = false;
     this.mapgl.remove();
   }
+
+  onViewArchive(tracker: Tracker) {
+    this.onViewTracker(tracker);
+  }
+
+  onDeleteTracker(tracker: Tracker) {
+    this.selectedTracker = tracker;
+    this.openDeleteTrackerDialog = true;
+  }
+
+  async confirmDeleteTracker() {
+    try {
+      await TrackerService.remove(this.selectedTracker?.id);
+      this.openDeleteTrackerDialog = false;
+      this.selectedTracker = undefined;
+      this.getTrackers();
+    } catch (error) {}
+  }
+
+  cancelDeleteTracker() {
+    this.openDeleteTrackerDialog = false;
+    this.selectedTracker = undefined;
+  }
+
   fitPolygon(map: any, polygon: any) {
     map.fitBounds(
       bbox({

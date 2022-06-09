@@ -52,7 +52,6 @@ export default {
       items: [
         { title: 'Trackers', icon: 'mdi-view-dashboard', route: '/' },
         { title: 'Regions', icon: 'mdi-image', route: 'regions' },
-        { title: 'Alets', icon: 'mdi-help-box', route: '/' },
       ],
       right: null,
       drawer: null,

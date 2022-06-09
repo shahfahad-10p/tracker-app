@@ -7,7 +7,13 @@ export default (() => {
     return response;
   }
 
+  async function remove(regionId) {
+    const response = await axios.delete(`${API_URL}region/${regionId}`);
+    return response;
+  }
+
   return {
     add,
+    remove,
   };
 })();

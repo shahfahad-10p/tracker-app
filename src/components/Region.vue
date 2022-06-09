@@ -2,18 +2,24 @@
   <v-dialog
     transition="dialog-bottom-transition"
     max-width="1400"
+    persistent
     v-model="openDialog"
   >
     <template>
       <v-card>
-        <v-row class="" no-gutters>
+        <v-row no-gutters>
           <v-col cols="2">
-            <v-text-field
-              v-model="region.name"
-              label="Region Name"
-            ></v-text-field>
-            <v-btn color="primary" @click="addRegion">Add</v-btn>
-            <v-btn color="error" @click="closeModal">Cancel</v-btn>
+            <v-card-title>Add Region</v-card-title>
+            <div class="pa-5">
+              <v-text-field
+                v-model="region.name"
+                label="Region Name"
+              ></v-text-field>
+              <v-btn color="primary" @click="addRegion">Add</v-btn>
+              <v-btn color="error" class="ml-2" @click="closeModal"
+                >Cancel</v-btn
+              >
+            </div>
           </v-col>
 
           <v-col cols="10">
@@ -41,6 +47,7 @@ export default class Region extends Vue {
   mapBoxDraw: any;
   openDialog = true;
   region: REGION = {
+    id: undefined,
     name: undefined,
     polygon: undefined,
   };
@@ -99,6 +106,9 @@ export default class Region extends Vue {
 
       this.mapgl.on('draw.create', this.onAddRegion);
       this.mapgl.on('draw.update', this.onAddRegion);
+
+      let tool = document.querySelector('[title="Polygon tool (p)"]');
+      tool?.classList.add('polygon-tool');
     });
   }
 
@@ -138,11 +148,25 @@ export default class Region extends Vue {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .map-gl {
   height: 550px;
 }
 .map-container {
   padding: 5px;
+}
+.polygon-tool {
+  height: 35px !important;
+  width: 105px !important;
+  background-color: var(--v-primary-base) !important;
+  border-radius: 4px !important;
+  background-image: none !important;
+  border: none !important;
+}
+.polygon-tool::after {
+  font-size: 0.875rem;
+  font-family: 'Arial';
+  content: 'Draw region';
+  color: rebeccapurple;
 }
 </style>
