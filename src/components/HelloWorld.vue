@@ -1,34 +1,25 @@
 <template>
   <v-container>
-      <v-row class="text-center">
-      <v-col cols="12">
-        <v-img
-          :src="require('../assets/logo.svg')"
-          class="my-3"
-          contain
-          height="200"
-        />
-      </v-col>
-
+    <v-row class="text-center">
       <v-col class="mb-4">
-          <h1>{{ msg }}</h1>
-          <h1>CURRENT POSITION</h1>
-          <h2>LATITUDE {{ coordinates.latitude }}</h2>
-          <h2>LONGITUDE {{ coordinates.longitude }}</h2>
+        <h1>{{ msg }}</h1>
+        <h1>CURRENT POSITION</h1>
+        <h2>LATITUDE {{ coordinates.latitude }}</h2>
+        <h2>LONGITUDE {{ coordinates.longitude }}</h2>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component
 export default class HelloWorld extends Vue {
- @Prop() private msg!: string;
+  @Prop() private msg!: string;
   private coordinates = {
     latitude: '',
-    longitude: ''
+    longitude: '',
   };
   private locationWatchId: number = 0;
 
@@ -39,9 +30,11 @@ export default class HelloWorld extends Vue {
 
   getLocation() {
     if (navigator.geolocation) {
-      this.locationWatchId = navigator.geolocation.watchPosition(this.showPosition);
+      this.locationWatchId = navigator.geolocation.watchPosition(
+        this.showPosition
+      );
     } else {
-      console.log("Geolocation is not supported by this browser.");
+      console.log('Geolocation is not supported by this browser.');
     }
   }
   showPosition(position: any) {

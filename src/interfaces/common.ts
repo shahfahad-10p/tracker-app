@@ -5,4 +5,12 @@ interface REGION {
   trackerCount?: number;
 }
 
-export { REGION };
+interface ITracker {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  regionName?: string;
+}
+
+export { REGION, ITracker };

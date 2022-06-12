@@ -14,6 +14,10 @@
         :items-per-page="10"
         class="elevation-1"
       >
+        <template v-slot:item.lastSeen="{ item }">
+          {{ item.lastSeen ? new Date(item.lastSeen).toLocaleString() : '' }}
+        </template>
+
         <template v-slot:top>
           <v-dialog
             v-model="openDeleteTrackerDialog"
@@ -88,14 +92,6 @@
 </template>
 
 <script lang="ts">
-interface Tracker {
-  id: number;
-  name: string;
-  latitude: number;
-  longitude: number;
-  regionName?: string;
-}
-
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import mapboxgl from 'mapbox-gl';
 import axios from 'axios';
@@ -103,6 +99,7 @@ import bbox from '@turf/bbox';
 
 import TrackerService from '../services/tracker';
 import TrackerAdd from './TrackeAdd.vue';
+import { ITracker } from '../interfaces/common';
 import { API_URL } from '../constants/api';
 
 @Component({
@@ -118,15 +115,16 @@ export default class TrackerList extends Vue {
       sortable: true,
       value: 'name',
     },
-    { text: 'Email', value: 'email', sortable: false },
     { text: 'Region', value: 'regionName', sortable: true },
+    { text: 'Last Seen', value: 'lastSeen', sortable: true },
+    { text: 'Email', value: 'email', sortable: false },
     { text: 'latitude', value: 'latitude', sortable: false },
     { text: 'longitude', value: 'longitude', sortable: false },
     { text: 'Actions', value: 'actions', sortable: false },
   ];
 
   trackers = [];
-  selectedTracker?: Tracker;
+  selectedTracker?: ITracker;
   openViewTrackerDialog = false;
   openAddTrackerDialog = false;
   openDeleteTrackerDialog = false;
@@ -150,8 +148,7 @@ export default class TrackerList extends Vue {
     this.getTrackers();
   }
 
-  async onViewTracker(tracker: Tracker) {
-    // TODO DRAW REGIONS
+  async onViewTracker(tracker: ITracker) {
     this.openViewTrackerDialog = true;
     const response: any = await axios.get(
       `${API_URL}tracker/${tracker.name}/geojson`
@@ -201,11 +198,11 @@ export default class TrackerList extends Vue {
     this.mapgl.remove();
   }
 
-  onViewArchive(tracker: Tracker) {
+  onViewArchive(tracker: ITracker) {
     this.onViewTracker(tracker);
   }
 
-  onDeleteTracker(tracker: Tracker) {
+  onDeleteTracker(tracker: ITracker) {
     this.selectedTracker = tracker;
     this.openDeleteTrackerDialog = true;
   }

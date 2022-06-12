@@ -12,8 +12,14 @@ export default (() => {
     return response;
   }
 
+  async function validate(name) {
+    const response = await axios.get(`${API_URL}tracker/${name}/validate`);
+    return response.data;
+  }
+
   return {
     add,
     remove,
+    validate,
   };
 })();

@@ -22,6 +22,6 @@ export default class Home extends Vue {}
 .main-container {
   padding: 20px;
   height: calc(100vh - 70px);
-  overflow: hidden;
+  overflow-y: auto;
 }
 </style>
