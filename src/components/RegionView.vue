@@ -70,7 +70,7 @@ export default class RegionView extends RegionProps {
     this.mapgl = new mapboxgl.Map({
       container: this.$refs.mapgl as HTMLElement, // container ID
       style: 'mapbox://styles/mapbox/streets-v11', // style URL
-      center: [-74.5, 40], // starting position [lng, lat]
+      center: [67.038982, 24.874701], // starting position [lng, lat]
       zoom: 11, // starting zoom
     });
 

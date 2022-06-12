@@ -58,41 +58,11 @@ export default class Region extends Vue {
     this.mapgl = new mapboxgl.Map({
       container: this.$refs.mapgl as HTMLElement, // container ID
       style: 'mapbox://styles/mapbox/streets-v11', // style URL
-      center: [-74.5, 40], // starting position [lng, lat]
-      zoom: 9, // starting zoom
+      center: [67.038982, 24.874701], // starting position [lng, lat]
+      zoom: 12, // starting zoom
     });
 
     this.mapgl.on('load', () => {
-      console.log('MAP LOADED : ');
-
-      this.mapgl.addSource('region-add', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {
-            name: 'tracker-02',
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: [67.1524774, 24.9481182],
-          },
-        },
-      });
-
-      this.mapgl.addLayer({
-        id: 'region-layer',
-        type: 'circle',
-        source: 'region-add',
-        paint: {
-          'circle-radius': 8,
-          'circle-stroke-width': 2,
-          'circle-color': 'red',
-          'circle-stroke-color': 'white',
-        },
-      });
-
-      this.mapgl.flyTo({ center: [67.1524774, 24.9481182] });
-
       this.mapBoxDraw = new MapboxDraw({
         displayControlsDefault: false,
 

@@ -129,6 +129,8 @@ export default class TrackerList extends Vue {
   openAddTrackerDialog = false;
   openDeleteTrackerDialog = false;
   mapgl: any;
+  defaultLocation: [67.038982, 24.874701];
+  mobileIcon = require('../assets/mobile-icon.png');
 
   mounted() {
     this.getTrackers();
@@ -148,49 +150,28 @@ export default class TrackerList extends Vue {
     this.getTrackers();
   }
 
-  async onViewTracker(tracker: ITracker) {
+  onViewTracker(tracker: ITracker, locationOnly: Boolean = true) {
     this.openViewTrackerDialog = true;
-    const response: any = await axios.get(
-      `${API_URL}tracker/${tracker.name}/geojson`
-    );
-    console.log('GEOJSON ', response);
 
-    mapboxgl.accessToken =
-      'pk.eyJ1IjoiZmFoYWRtMTEiLCJhIjoiY2tmNWE0bXluMDZmNzJxcTdsanRyZTMzZSJ9.Q6Mwf640Zh4VG2zThjrFKg';
-    this.mapgl = new mapboxgl.Map({
-      container: this.$refs.mapgl as HTMLElement, // container ID
-      style: 'mapbox://styles/mapbox/streets-v11', // style URL
-      center: [-74.5, 40], // starting position [lng, lat]
-      zoom: 9, // starting zoom
-    });
-
-    this.mapgl.on('load', () => {
-      console.log('MAP LOADED : ');
-
-      this.mapgl.addSource('tracker', {
-        type: 'geojson',
-        data: `${API_URL}tracker/${tracker.name}/geojson`,
+    setTimeout(() => {
+      mapboxgl.accessToken =
+        'pk.eyJ1IjoiZmFoYWRtMTEiLCJhIjoiY2tmNWE0bXluMDZmNzJxcTdsanRyZTMzZSJ9.Q6Mwf640Zh4VG2zThjrFKg';
+      this.mapgl = new mapboxgl.Map({
+        container: this.$refs.mapgl as HTMLElement, // container ID
+        style: 'mapbox://styles/mapbox/streets-v11', // style URL
+        center: this.defaultLocation, // starting position [lng, lat]
+        zoom: 11, // starting zoom
       });
 
-      this.mapgl.addLayer({
-        id: 'tracker-layer',
-        type: 'circle',
-        source: 'tracker',
-        paint: {
-          'circle-radius': 8,
-          'circle-stroke-width': 2,
-          'circle-color': 'red',
-          'circle-stroke-color': 'white',
-        },
+      this.mapgl.on('load', () => {
+        this.mapgl.loadImage(this.mobileIcon, (error: any, image: any) => {
+          if (error) throw error;
+          this.mapgl.addImage('mobile', image);
+        });
+        console.log('MAP LOADED : ');
+        locationOnly ? this.showLocation(tracker) : this.showArchive(tracker);
       });
-      const coordinates = response.data.features.map((tracker: any) => {
-        return tracker.geometry.coordinates;
-      });
-
-      console.log('BBOX COORDINATES : ', coordinates);
-
-      coordinates.length && this.fitPolygon(this.mapgl, coordinates);
-    });
+    }, 1000);
   }
 
   closeMapModal() {
@@ -199,7 +180,7 @@ export default class TrackerList extends Vue {
   }
 
   onViewArchive(tracker: ITracker) {
-    this.onViewTracker(tracker);
+    this.onViewTracker(tracker, false);
   }
 
   onDeleteTracker(tracker: ITracker) {
@@ -219,6 +200,65 @@ export default class TrackerList extends Vue {
   cancelDeleteTracker() {
     this.openDeleteTrackerDialog = false;
     this.selectedTracker = undefined;
+  }
+
+  showLocation(tracker: ITracker) {
+    console.log('LOCATION ONLY : TRACKER');
+
+    const location = tracker.latitude
+      ? [tracker.longitude, tracker.latitude]
+      : this.defaultLocation;
+    this.mapgl.addSource('tracker-location', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Point',
+          coordinates: location,
+        },
+      },
+    });
+    this.mapgl.addLayer({
+      id: 'tracker-layer',
+      type: 'symbol',
+      source: 'tracker-location',
+      layout: {
+        'icon-image': 'mobile',
+      },
+    });
+
+    this.mapgl.flyTo({ center: location });
+  }
+
+  async showArchive(tracker: ITracker) {
+    console.log('ARCHIVE ONLY : TRACKER');
+
+    const response: any = await axios.get(
+      `${API_URL}tracker/${tracker.name}/geojson`
+    );
+
+    this.mapgl.addSource('tracker', {
+      type: 'geojson',
+      data: `${API_URL}tracker/${tracker.name}/geojson`,
+    });
+
+    this.mapgl.addLayer({
+      id: 'tracker-location-layer',
+      type: 'circle',
+      source: 'tracker',
+      paint: {
+        'circle-radius': 6,
+        'circle-stroke-width': 4,
+        'circle-color': 'red',
+        'circle-stroke-color': 'yellow',
+      },
+    });
+    const coordinates = response.data.features.map((tracker: any) => {
+      return tracker.geometry.coordinates;
+    });
+
+    coordinates.length && this.fitPolygon(this.mapgl, coordinates);
   }
 
   fitPolygon(map: any, polygon: any) {
