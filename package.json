@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve --port 3001",
-    "build": "vue-cli-service build",
+    "build": "vue-cli-service build && cp dist/index.html dist/200.html",
     "serve:portal": "vue-cli-service serve --app=portal --port 3002",
-    "build:portal": "vue-cli-service build --app=portal",
+    "build:portal": "vue-cli-service build --app=portal && cp dist-portal/index.html dist-portal/200.html",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "postinstall": "npm run build",
